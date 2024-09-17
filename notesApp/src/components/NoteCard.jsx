@@ -8,16 +8,12 @@ const NoteCard = ({ note }) => {
 
     const textAreaRef = useRef(null);
 
-    useEffect(() => {
-        autoGrow(textAreaRef);
-    }, [])
-
-    const autoGrow = (textarea) => {
+    const autoGrow = (textAreaRef) => {
         const {current} = textAreaRef
-
-        current.style.height = "auto"; // Reset the height
-        current.style.height = current.scrollHeight + "px"; 
+        current.style.height = "auto";
+        current.style.height = current.scrollHeight + "px";
     }
+
  
     return (
         <div
@@ -46,3 +42,5 @@ const NoteCard = ({ note }) => {
 };
 
 export default NoteCard
+
+//24:13 https://www.youtube.com/watch?v=yBThHM2pBbE&t=1790s
