@@ -1,12 +1,16 @@
 import { useRef, useEffect, useState } from "react";
 import { db } from "../appwrite/databases";
-import Trash from "../icons/Trash";
+import DeleteButton from "./DeleteButton";
 import Spinner from "../icons/spinner";
 import { setNewOffset, autoGrow, setZIndex, bodyParser} from "../utils";
+import { useContext } from "react";
+import { NoteContext } from "../context/NoteContext";
 
-const NoteCard = ({ note }) => {
+const NoteCard = ({ note, }) => {
     const [saving, setSaving] = useState(false);
     const keyUpTimer = useRef(null);
+
+    const { setSelectedNote } = useContext(NoteContext);
 
     const [position, setPosition] = useState(JSON.parse(note.position));
     const colors = JSON.parse(note.colors);
@@ -19,10 +23,12 @@ const NoteCard = ({ note }) => {
 
     useEffect (() => {
         autoGrow(textAreaRef);
+        setZIndex(cardRef.current);
     }, [])
 
     
     const mouseDown = (e) => {
+        if (e.target.className === "card-header") {
         mouseStartPos.x = e.clientX;
         mouseStartPos.y = e.clientY;
 
@@ -30,7 +36,9 @@ const NoteCard = ({ note }) => {
         document.addEventListener('mouseup', mouseUp);
 
         setZIndex(cardRef.current)
-    }
+        setSelectedNote(note);
+        }
+    };
 
     const mouseMove = (e) => {
         const mouseMoveDir = {
@@ -95,7 +103,7 @@ const NoteCard = ({ note }) => {
         className="card-header"
         style={{ backgroundColor: colors.colorHeader }}
         >
-            <Trash></Trash>
+            <DeleteButton noteId={note.$id}></DeleteButton>
 
             
     {saving && (
@@ -115,6 +123,7 @@ const NoteCard = ({ note }) => {
                 onInput={() => {autoGrow(textAreaRef);}}
                 onFocus={() => {
                     setZIndex(cardRef.current)
+                    setSelectedNote(note);
                 }}
             ></textarea>
         </div>
