@@ -1,11 +1,16 @@
 import { useRef, useEffect, useState } from "react";
+import { db } from "../appwrite/databases";
 import Trash from "../icons/Trash";
-import { setNewOffset, autoGrow, setZIndex } from "../utils";
+import Spinner from "../icons/spinner";
+import { setNewOffset, autoGrow, setZIndex, bodyParser} from "../utils";
 
 const NoteCard = ({ note }) => {
+    const [saving, setSaving] = useState(false);
+    const keyUpTimer = useRef(null);
+
     const [position, setPosition] = useState(JSON.parse(note.position));
     const colors = JSON.parse(note.colors);
-    const body = JSON.parse(note.body);
+    const body = bodyParser(note.body);
 
     let mouseStartPos = {x:0, y: 0 };
     const cardRef = useRef(null);
@@ -44,8 +49,36 @@ const NoteCard = ({ note }) => {
     const mouseUp = () => {
         document.removeEventListener("mousemove", mouseMove);
         document.removeEventListener("mouseup", mouseUp);
-    }
 
+        const newPosition = setNewOffset(cardRef.current);
+        saveData('position', newPosition);
+    };
+
+    const saveData = async (key, value) => {
+        const payload = {[key]:JSON.stringify(value)}
+
+        try {
+            await db.notes.update(note.$id, payload)
+        } catch (error) {
+            console.error(error)
+        }
+        setSaving(false);
+    };
+
+    const handleKeyUp = async () => {
+        //1 - Initiate "saving" state
+        setSaving(true);
+     
+        //2 - If we have a timer id, clear it so we can add another two seconds
+        if (keyUpTimer.current) {
+            clearTimeout(keyUpTimer.current);
+        }
+     
+        //3 - Set timer to trigger save in 2 seconds
+        keyUpTimer.current = setTimeout(() => {
+            saveData("body", textAreaRef.current.value);
+        }, 2000);
+    };
  
     return (
         <div
@@ -63,9 +96,19 @@ const NoteCard = ({ note }) => {
         style={{ backgroundColor: colors.colorHeader }}
         >
             <Trash></Trash>
+
+            
+    {saving && (
+        <div className="card-saving">
+            <Spinner color={colors.colorText}/>
+            <span style={{ color: colors.colorText }}>Saving...</span>
+        </div>
+    )}
+
         </div>
         <div className="card-body">
             <textarea
+                onKeyUp={handleKeyUp}
                 ref={textAreaRef}
                 style={{ color: colors.colorText }}
                 defaultValue={body}
