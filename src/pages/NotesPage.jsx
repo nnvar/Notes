@@ -8,7 +8,7 @@ const NotesPage = () => {
     const { notes, setNotes } = useContext(NoteContext);
     return (
         <div>
-            <Header></Header>
+            
             {notes.map((note) => (
                 <NoteCard note={note} key={note.$id}  />
             ))}
